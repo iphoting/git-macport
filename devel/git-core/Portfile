@@ -5,7 +5,7 @@ PortSystem          1.0
 
 name                git-core
 version             1.7.10.3
-revision            0
+revision            1
 description         A fast version control system
 long_description    Git is a fast, scalable, distributed open source version \
                     control system focusing on speed and efficiency.
@@ -13,9 +13,7 @@ maintainers         nomaintainer
 categories          devel
 license             GPL-2 LGPL-2.1+
 platforms           darwin
-homepage            http://git-scm.com
-#use_bzip2           yes
-#master_sites        http://www.kernel.org/pub/software/scm/git/
+homepage            http://git-scm.com/
 master_sites        googlecode
 distname            git-${version}
 distfiles           git-${version}${extract.suffix} \
@@ -29,14 +27,15 @@ checksums           git-${version}${extract.suffix} \
                     sha256  811df53ad4736589e0f9473f1651ed0eb4dcdfe01b379a1a7f9129a6bc0b36cd
 
 depends_run         port:rsync \
-                    port:p5.12-error
+                    port:p5.12-error \
+                    port:p5.12-term-readkey
+
 depends_lib         port:perl5.12 \
                     port:curl \
                     port:zlib \
                     port:openssl \
                     port:expat \
-                    port:libiconv \
-                    port:gettext
+                    port:libiconv
 
 patchfiles          patch-Makefile.diff 0001-setup-Do-not-strip-trailing-from-paths.patch
 patch.pre_args      -p1
@@ -67,30 +66,14 @@ test.run            yes
 test.cmd            make
 test.target         test
 test.dir            ${worksrcpath}
-test.args           CFLAGS="${CFLAGS}" \
-                    LDFLAGS="${LDFLAGS}" \
-                    CC=${configure.cc} \
-                    prefix=${prefix} \
-                    CURLDIR=${prefix} \
-                    OPENSSLDIR=${prefix} \
-                    ICONVDIR=${prefix} \
-                    PERL_PATH="${prefix}/bin/perl5.12" \
-                    NO_FINK=1 \
-                    NO_DARWIN_PORTS=1 \
-                    NO_R_TO_GCC_LINKER=1
+pre-test {
+    eval test.args  ${build.args}
+}
 
 destroot.target     install
-destroot.args       CFLAGS="${CFLAGS}" \
-                    LDFLAGS="${LDFLAGS}" \
-                    CC=${configure.cc} \
-                    prefix=${prefix} \
-                    CURLDIR=${prefix} \
-                    OPENSSLDIR=${prefix} \
-                    ICONVDIR=${prefix} \
-                    PERL_PATH="${prefix}/bin/perl5.12" \
-                    NO_FINK=1 \
-                    NO_DARWIN_PORTS=1 \
-                    NO_R_TO_GCC_LINKER=1
+pre-destroot {
+    eval destroot.args  ${build.args}
+}
 
 post-destroot {
     foreach f {1 5 7} {
@@ -124,22 +107,16 @@ if {![variant_isset python26] && ![variant_isset python27]} {
 
 variant python26 conflicts python27 description {Use Python 2.6} {
     build.args-append       PYTHON_PATH="${prefix}/bin/python2.6"
-    destroot.args-append    PYTHON_PATH="${prefix}/bin/python2.6"
-    test.args-append        PYTHON_PATH="${prefix}/bin/python2.6"
     depends_lib-append      port:python26
 }
 
 variant python27 conflicts python26 description {Use Python 2.7} {
     build.args-append       PYTHON_PATH="${prefix}/bin/python2.7"
-    destroot.args-append    PYTHON_PATH="${prefix}/bin/python2.7"
-    test.args-append        PYTHON_PATH="${prefix}/bin/python2.7"
     depends_lib-append      port:python27
 }
 
 variant pcre {
     build.args-append       LIBPCREDIR=${prefix} USE_LIBPCRE=1
-    destroot.args-append    LIBPCREDIR=${prefix} USE_LIBPCRE=1
-    test.args-append        LIBPCREDIR=${prefix} USE_LIBPCRE=1
     depends_lib-append      port:pcre
 }
 
@@ -173,12 +150,11 @@ variant gitweb description {Install gitweb.cgi} {
 variant svn description {Bi-directional subversion repository support} {
     depends_run-append  port:subversion \
                         port:p5.12-libwww-perl \
-                        port:p5.12-svn-simple \
-                        port:p5.12-term-readkey
+                        port:p5.12-svn-simple
 }
 
 variant bash_completion {
-    depends_run-append  port:bash-completion
+    depends_run-append  path:etc/bash_completion:bash-completion
 
     post-destroot {
         xinstall -d ${destroot}${prefix}/etc/bash_completion.d
@@ -187,7 +163,21 @@ variant bash_completion {
     }
 }
 
-default_variants    +doc +pcre
+variant credential_osxkeychain description {Install git credential-osxkeychain utility from contrib} {
+    #patchfiles-append   patch-contrib-credential-osxkeychain-Makefile.diff
 
-#livecheck.type          regex
-#livecheck.regex         {<div id="ver">v([0-9.]+)}
+    post-build {
+        system -W "${worksrcpath}/contrib/credential/osxkeychain" "make [join ${build.args}]"
+    }
+
+    pre-destroot {
+        xinstall -m 755 "${worksrcpath}/contrib/credential/osxkeychain/git-credential-osxkeychain" \
+            "${destroot}${prefix}/bin/"
+        system -W "${worksrcpath}/contrib/credential/osxkeychain" "make clean"
+    }
+}
+
+default_variants    +doc +pcre +credential_osxkeychain
+
+livecheck.type          regex
+livecheck.regex         {<span class='version'>(.*)</span>}
