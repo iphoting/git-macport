@@ -4,7 +4,7 @@
 PortSystem          1.0
 
 name                git-core
-version             1.8.3
+version             1.8.3.1
 revision            0
 description         A fast version control system
 long_description    Git is a fast, scalable, distributed open source version \
@@ -20,11 +20,11 @@ distfiles           git-${version}${extract.suffix} \
                     git-manpages-${version}${extract.suffix}
 
 checksums           git-${version}${extract.suffix} \
-                    rmd160  c3fcbdb44678646984e11608bb419b92bd1cc5f8 \
-                    sha256  f1d3c6d683f8f15035a8d0f3eb30ed160ff6607111dfc6026d8836307aebc53a \
+                    rmd160  72661dfa511dd41104e74622f38ed7875e492799 \
+                    sha256  ea2dde231b3f659da92dd0afc092a16720d63f1206cdcb271920e88f328bda83 \
                     git-manpages-${version}${extract.suffix} \
-                    rmd160  4718bfa93db5a5f6b06b80f4df940053a387b49c \
-                    sha256  973800aa5508679d22b6e236806f8f4ae9785bb2aad3041ac8acab39df1e476b
+                    rmd160  a7cfac5c5a72d0129b168cd45df2981e465bebcf \
+                    sha256  ab574826814b9469c91cdb99ecf5ad66228d0e30197e54881a4fe8ce0a17caba
 
 depends_run         port:rsync \
                     port:p5.12-error \
@@ -123,8 +123,8 @@ variant pcre {
 variant doc description {Install HTML and plaintext documentation} {
     distfiles-append        git-htmldocs-${version}${extract.suffix}
     checksums-append        git-htmldocs-${version}${extract.suffix} \
-                            rmd160  00cd903ce118d5ad7c00e17ffbd39e8f5bd15859 \
-                            sha256  c3395e5e96df2af9ac4f3d06aa75a96a9a0b23e0d4087c318fc6260c4c84fa4d
+                            rmd160  d46c0dd153ed959ebae8b14094b5587967326814 \
+                            sha256  0be04c5efc831bbc7b1d80707d953bf7e9d500037eb202f6fd042c0fff0538ea
 }
 
 variant gitweb description {Install gitweb.cgi} {
